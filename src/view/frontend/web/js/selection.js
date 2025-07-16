@@ -6,37 +6,39 @@
 
 define([
     'jquery',
-    'priceUtils',
     'domReady',
+    'Infrangible_BundleOptionSelection/js/model/selection',
+    'priceUtils',
     'underscore'
-], function ($, utils, domReady, _) {
+], function ($, domReady, selection, utils, _) {
     'use strict';
 
     var globalOptions = {
         index: {},
         productBundleSelector: 'input.bundle.option, select.bundle.option, textarea.bundle.option',
-        productBundleTriggerSelector: '.column.main'
+        productBundleTriggerSelector: '.bundle-options-container'
     };
 
     $.widget('infrangible.bundleOptionSelection', {
         options: globalOptions,
 
-        _create: function createBundle() {
-            this.cache = {};
+        _create: function() {
         },
 
-        _init: function initBundle() {
+        _init: function() {
             var self = this;
 
             domReady(function() {
                 var form = self.element;
                 var options = $(self.options.productBundleSelector, form);
 
+                selection.setOptions(self.options);
+
                 options.on('change', function() {
-                    var selectedProductIds = self.collectSelectedProductIds(options);
+                    var selectedProductIds = self.collectSelectedProductIds();
                     console.debug('Bundle options have selected product ids: ' + _.compact(selectedProductIds));
 
-                    $(self.options.productBundleTriggerSelector).trigger('bundle.changed', [selectedProductIds]);
+                    $(self.options.productBundleTriggerSelector).trigger('bundle_changed', [selectedProductIds]);
 
                     var option = $(this);
                     var optionId = utils.findOptionId(option[0]);
@@ -44,92 +46,27 @@ define([
                     console.debug('Changed bundle option with id: ' +  optionId +
                         ' has selected product ids: ' + _.compact(optionSelectedProductIds));
 
-                    $(self.options.productBundleTriggerSelector).trigger('bundle.option.changed',
+                    $(self.options.productBundleTriggerSelector).trigger('bundle_option_changed',
                         [optionId, optionSelectedProductIds]);
                 });
-            });
-        },
 
-        collectSelectedProductIds: function(options) {
-            var self = this;
-            var selectedProductIds = [];
+                var selectedProductIds = selection.collectSelectedProductIds(form);
+                console.debug('Bundle options have selected product ids: ' + _.compact(selectedProductIds));
 
-            options.each(function() {
-                var option = $(this);
-                var optionId = utils.findOptionId(option[0]);
-                var optionValueSelectedProductIds = self.getOptionValueSelectedProductIds(option);
+                $.each(selectedProductIds, function(optionId, optionSelectedProductIds) {
+                    console.debug('Bundle option with id: ' +  optionId +
+                        ' has selected product ids: ' + _.compact(optionSelectedProductIds));
 
-                if (! (optionId in selectedProductIds)) {
-                    selectedProductIds[optionId] = [];
-                }
-
-                $.each(optionValueSelectedProductIds, function(key, selectedProductId) {
-                    selectedProductIds[optionId].push(selectedProductId);
+                    $(self.options.productBundleTriggerSelector).trigger('bundle_option_changed',
+                        [optionId, optionSelectedProductIds]);
                 });
-            });
 
-            return selectedProductIds;
+                $(self.options.productBundleTriggerSelector).trigger('bundle_changed', [selectedProductIds]);
+            });
         },
 
-        getOptionValueSelectedProductIds: function(option) {
-            var self = this;
-
-            var optionType = option.prop('type');
-            var optionId = utils.findOptionId(option[0]);
-            var optionValue = option.val() || null;
-
-            var optionValueSelectedProductIds = [];
-
-            if (optionValue) {
-                var optionIndex = self.options.index[optionId];
-
-                if (optionIndex) {
-                    var selectedProductId;
-
-                    switch (optionType) {
-                        case 'select-one':
-                        case 'hidden':
-                            selectedProductId = optionIndex[optionValue];
-                            if (selectedProductId) {
-                                optionValueSelectedProductIds.push(selectedProductId);
-                            }
-                            break;
-
-                        case 'select-multiple':
-                            if (Array.isArray(optionValue)) {
-                                $.each(optionValue, function(key, optionValueValue) {
-                                    selectedProductId = optionIndex[optionValueValue];
-                                    if (selectedProductId) {
-                                        optionValueSelectedProductIds.push(selectedProductId);
-                                    }
-                                });
-                            }
-                            break;
-
-                        case 'radio':
-                        case 'checkbox':
-                            if (option.is(':checked')) {
-                                selectedProductId = optionIndex[optionValue];
-                                if (selectedProductId) {
-                                    optionValueSelectedProductIds.push(selectedProductId);
-                                }
-                            }
-                            break;
-                    }
-                }
-            }
-
-            if (! (optionId in self.cache)) {
-                self.cache[optionId] = [];
-            }
-
-            self.cache[optionId][optionValue] = [];
-
-            $.each(optionValueSelectedProductIds, function(key, selectedProductId) {
-                self.cache[optionId][optionValue].push(selectedProductId);
-            });
-
-            return optionValueSelectedProductIds;
+        collectSelectedProductIds: function() {
+            return selection.collectSelectedProductIds(this.element);
         }
     });
 
