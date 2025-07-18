@@ -16,7 +16,8 @@ define([
     var globalOptions = {
         index: {},
         productBundleSelector: 'input.bundle.option, select.bundle.option, textarea.bundle.option',
-        productBundleTriggerSelector: '.bundle-options-container'
+        productBundleTriggerSelector: '.bundle-options-container',
+        productBundleContainerSelector: null
     };
 
     $.widget('infrangible.bundleOptionSelection', {
@@ -29,7 +30,7 @@ define([
             var self = this;
 
             domReady(function() {
-                var form = self.element;
+                var form = self.productBundleContainerSelector ? self.productBundleContainerSelector : self.element;
                 var options = $(self.options.productBundleSelector, form);
 
                 selection.setOptions(self.options);
@@ -66,7 +67,8 @@ define([
         },
 
         collectSelectedProductIds: function() {
-            return selection.collectSelectedProductIds(this.element);
+            return selection.collectSelectedProductIds(
+                this.productBundleContainerSelector ? this.productBundleContainerSelector : this.element);
         }
     });
 
