@@ -1,6 +1,6 @@
 /**
  * @author      Andreas Knollmann
- * @copyright   Copyright (c) 2014-2025 Softwareentwicklung Andreas Knollmann
+ * @copyright   Copyright (c) 2014-2026 Softwareentwicklung Andreas Knollmann
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
  */
 
@@ -20,7 +20,8 @@ define([
         productBundleContainerSelector: null
     };
 
-    $.widget('infrangible.bundleOptionSelection', {
+    // $.widget() returns the constructor, which is $.infrangible.bundleOptionSelection
+    return $.widget('infrangible.bundleOptionSelection', {
         options: globalOptions,
 
         _create: function() {
@@ -30,7 +31,7 @@ define([
             const self = this;
 
             domReady(function() {
-                const form = self.productBundleContainerSelector ? self.productBundleContainerSelector : self.element;
+                const form = self.getContainer();
                 const options = $(self.options.productBundleSelector, form);
 
                 selection.setOptions(self.options);
@@ -67,10 +68,12 @@ define([
         },
 
         collectSelectedProductIds: function() {
-            return selection.collectSelectedProductIds(
-                this.productBundleContainerSelector ? this.productBundleContainerSelector : this.element);
+            return selection.collectSelectedProductIds(this.getContainer());
+        },
+
+        getContainer: function() {
+            return this.options.productBundleContainerSelector ?
+                $(this.options.productBundleContainerSelector) : this.element;
         }
     });
-
-    return $.infrangible.bundleOptionSelection;
 });
