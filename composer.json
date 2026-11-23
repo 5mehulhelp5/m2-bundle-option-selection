@@ -25,6 +25,9 @@
         "magento/module-bundle": "~101.0.0",
         "magento/module-catalog": "~104.0.0"
     },
+    "require-dev": {
+        "infrangible/phpstan-magento": "~1.0.0"
+    },
     "autoload": {
         "files": [
             "src/registration.php"
